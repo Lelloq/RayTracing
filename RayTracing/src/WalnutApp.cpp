@@ -16,13 +16,18 @@ private:
 	Camera _Camera;
 	uint32_t _ViewportWidth = 0, _ViewportHeight = 0;
 
+	std::string _RealTimeOrSnapshot = "Snapshot";
+
 	float _LastRenderTime = 0.f;
 public:
 	ExampleLayer() : _Camera(45.f, 0.1f, 100.f) {};
 
 	virtual void OnUpdate(float ts) override
 	{
-		_Camera.OnUpdate(ts);
+		if(_RealTimeOrSnapshot == "Real Time")
+		{
+			_Camera.OnUpdate(ts);
+		}
 	}
 
 	virtual void OnUIRender() override
@@ -34,6 +39,10 @@ public:
 			Render();
 		};
 		ImGui::ColorEdit4("Sphere Colour", (float*)&gSphereColour);
+		if (ImGui::Button(_RealTimeOrSnapshot.c_str()))
+		{
+			_RealTimeOrSnapshot = (_RealTimeOrSnapshot == "Real Time") ? "Snapshot" : "Real Time";
+		}
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f,0.f));
@@ -49,7 +58,10 @@ public:
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-		Render();
+		if(_RealTimeOrSnapshot == "Real Time")
+		{
+			Render();
+		}
 	}
 
 	void Render() 
