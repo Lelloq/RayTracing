@@ -1,19 +1,30 @@
 #include "Walnut/Application.h"
 #include "Walnut/EntryPoint.h"
 
+#include "Globals.h"
+
 #include "Walnut/Image.h"
 #include "Walnut/Timer.h"
 
 #include "Rendering/Renderer.h"
+#include "Camera.h"
 
 class ExampleLayer : public Walnut::Layer
 {
 private:
 	Renderer _Renderer;
+	Camera _Camera;
 	uint32_t _ViewportWidth = 0, _ViewportHeight = 0;
 
 	float _LastRenderTime = 0.f;
 public:
+	ExampleLayer() : _Camera(45.f, 0.1f, 100.f) {};
+
+	virtual void OnUpdate(float ts) override
+	{
+		_Camera.OnUpdate(ts);
+	}
+
 	virtual void OnUIRender() override
 	{
 		ImGui::Begin("Settings");
@@ -22,6 +33,7 @@ public:
 		{
 			Render();
 		};
+		ImGui::ColorEdit4("Sphere Colour", (float*)&gSphereColour);
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f,0.f));
@@ -36,6 +48,8 @@ public:
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+
+		Render();
 	}
 
 	void Render() 
@@ -43,7 +57,8 @@ public:
 		Walnut::Timer timer;
 
 		_Renderer.OnResize(_ViewportWidth, _ViewportHeight);
-		_Renderer.Render();
+		_Camera.OnResize(_ViewportWidth, _ViewportHeight);
+		_Renderer.Render(_Camera);
 
 		_LastRenderTime = timer.ElapsedMillis();
 	};

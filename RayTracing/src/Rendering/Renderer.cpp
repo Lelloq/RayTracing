@@ -1,27 +1,46 @@
 #include "Rendering/Renderer.h"
 #include "Walnut/Random.h"
 #include <iostream>
+#include "Globals.h"
 
-void Renderer::Render()
+namespace Utils
 {
+	static uint32_t ConvertToRGBA(glm::vec4 colour)
+	{
+		uint8_t r = (uint8_t)(colour.r * 255.f);
+		uint8_t g = (uint8_t)(colour.g * 255.f);
+		uint8_t b = (uint8_t)(colour.b * 255.f);
+		uint8_t a = (uint8_t)(colour.a * 255.f);
+
+		uint32_t res = (a << 24) | (b << 16) | (g << 8) | r;
+		return res;
+	}	
+}
+
+void Renderer::Render(const Camera& camera)
+{
+	Ray ray;
+	ray.Origin = camera.GetPosition();
+
 	//Every pixel going left to right, up to down
 	for (uint32_t y = 0; y < _FinalImage->GetHeight(); y++)
 	{
 		for (uint32_t x = 0; x < _FinalImage->GetWidth(); x++)
 		{
-			//Bringing it to 0 to 1 range
-			glm::vec2 coord = {static_cast<float>(x) / _FinalImage->GetWidth(), static_cast<float>(y) / _FinalImage->GetHeight() };
-			coord = coord * 2.f - 1.f; //-1 to 1
-			_ImageData[x + y * _FinalImage->GetWidth()] = PerPixel(coord);
+			//The camera class already makes puts the coordinates into NDC
+			ray.Direction = camera.GetRayDirections()[x + y * _FinalImage->GetWidth()];
+
+			glm::vec4 col = TraceRay(ray);
+			col = glm::clamp(col, glm::vec4(0.f), glm::vec4(1.f));
+			_ImageData[x + y * _FinalImage->GetWidth()] = Utils::ConvertToRGBA(col);
 		}
 	}
 	_FinalImage->SetData(_ImageData);
 }
 
-uint32_t Renderer::PerPixel(glm::vec2 coord)
+glm::vec4 Renderer::TraceRay(const Ray& ray)
 {
-	glm::vec3 rayDirection(coord.x, coord.y, -1.f);
-	glm::vec3 rayOrigin(0.0f,0.0,2.0f);
+	float aspectRatio = (float)_FinalImage->GetWidth() / (float)_FinalImage->GetHeight();
 	float radius = 0.5f;
 	//rayDirection = glm::normalize(rayDirection);
 
@@ -32,18 +51,31 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 	//r = radius
 	//t = hit distance
 
-	float a = glm::dot(rayDirection, rayDirection);
-	float b = 2.f * glm::dot(rayOrigin, rayDirection);
-	float c = glm::dot(rayOrigin, rayOrigin) - radius * radius;
+	float a = glm::dot(ray.Direction, ray.Direction);
+	float b = 2.f * glm::dot(ray.Origin, ray.Direction);
+	float c = glm::dot(ray.Origin, ray.Origin) - radius * radius;
 
 	float discriminant = b * b - 4.f * a * c;
-
-	if (discriminant >= 0)
+	if (discriminant < 0.f)
 	{
-		//std::cout << discriminant << " at " << rayDirection.x << "," << rayDirection.y << "\n";
-		return 0xffff0000 | (uint8_t)(discriminant * 255.f) << 8;
+		return glm::vec4(0.f,0.f,0.f,1.f);
 	}
-	return 0xff000000;
+
+	//(-b +- sqrt(disc)) / 2a
+	float t0 = (-b + glm::sqrt(discriminant)) / (2.f * a);
+	float closestT = (-b - glm::sqrt(discriminant)) / (2.f * a);
+
+	//The coordinate in which the ray hit the sphere
+	glm::vec3 hitpoint = ray.Origin + ray.Direction * closestT;
+	glm::vec3 normal = glm::normalize(hitpoint);
+
+	glm::vec3 lightDirection = glm::normalize(glm::vec3((-1.f, -1.f, -1.f)));
+
+	float d = glm::max(glm::dot(normal, -lightDirection), 0.f);// cos(angle)
+
+	glm::vec3 sphereColour(gSphereColour.x, gSphereColour.y, gSphereColour.z);
+	sphereColour *= d + glm::vec3(0.2f);
+	return glm::vec4(sphereColour ,gSphereColour.w);
 }
 
 void Renderer::OnResize(uint32_t width, uint32_t height)
