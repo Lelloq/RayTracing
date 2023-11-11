@@ -1,26 +1,31 @@
 #include "Walnut/Application.h"
 #include "Walnut/EntryPoint.h"
 
-#include "Globals.h"
-
 #include "Walnut/Image.h"
 #include "Walnut/Timer.h"
 
 #include "Rendering/Renderer.h"
 #include "Camera.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 class ExampleLayer : public Walnut::Layer
 {
 private:
 	Renderer _Renderer;
 	Camera _Camera;
+	Scene _Scene;
 	uint32_t _ViewportWidth = 0, _ViewportHeight = 0;
 
 	std::string _RealTimeOrSnapshot = "Snapshot";
 
 	float _LastRenderTime = 0.f;
 public:
-	ExampleLayer() : _Camera(45.f, 0.1f, 100.f) {};
+	ExampleLayer() : _Camera(45.f, 0.1f, 100.f) 
+	{
+		_Scene.Spheres.push_back(Sphere{glm::vec3(0.5f,0.5f,0.f), 0.5f, glm::vec4(1.f,0.f,0.5f,1.f)});
+		_Scene.Spheres.push_back(Sphere{glm::vec3(-0.5f,0.5f,-4.f), 1.5f, glm::vec4(1.f,0.25f,0.5f,1.f)});
+	};
 
 	virtual void OnUpdate(float ts) override
 	{
@@ -38,10 +43,26 @@ public:
 		{
 			Render();
 		};
-		ImGui::ColorEdit4("Sphere Colour", (float*)&gSphereColour);
 		if (ImGui::Button(_RealTimeOrSnapshot.c_str()))
 		{
 			_RealTimeOrSnapshot = (_RealTimeOrSnapshot == "Real Time") ? "Snapshot" : "Real Time";
+		}
+		ImGui::End(); 
+		
+		ImGui::Begin("Scene");
+		for(size_t i = 0; i < _Scene.Spheres.size(); i++)
+		{
+			ImGui::PushID(i);
+
+			Sphere& sphere = _Scene.Spheres.at(i);
+			std::string name = "Sphere " + std::to_string(i + 1) + ":";
+			ImGui::Text(name.c_str());
+			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
+			ImGui::ColorEdit4("Albedo", glm::value_ptr(sphere.Albedo), 0.1f);
+			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
+
+			ImGui::Separator();
+			ImGui::PopID();
 		}
 		ImGui::End();
 
@@ -70,7 +91,7 @@ public:
 
 		_Renderer.OnResize(_ViewportWidth, _ViewportHeight);
 		_Camera.OnResize(_ViewportWidth, _ViewportHeight);
-		_Renderer.Render(_Camera);
+		_Renderer.Render(_Scene, _Camera);
 
 		_LastRenderTime = timer.ElapsedMillis();
 	};
