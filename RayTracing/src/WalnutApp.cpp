@@ -17,21 +17,25 @@ private:
 	Scene _Scene;
 	uint32_t _ViewportWidth = 0, _ViewportHeight = 0;
 
-	std::string _RealTimeOrSnapshot = "Snapshot";
+	bool _RealTime = false;
 
 	float _LastRenderTime = 0.f;
 public:
 	ExampleLayer() : _Camera(45.f, 0.1f, 100.f) 
 	{
-		_Scene.Spheres.push_back(Sphere{glm::vec3(0.5f,0.5f,0.f), 0.5f, glm::vec4(1.f,0.f,0.5f,1.f)});
-		_Scene.Spheres.push_back(Sphere{glm::vec3(-0.5f,0.5f,-4.f), 1.5f, glm::vec4(1.f,0.25f,0.5f,1.f)});
+		_Scene.Spheres.push_back(Sphere{ glm::vec3(0.0f,0.0f,0.f), 1.0f, 0 });
+		_Scene.Spheres.push_back(Sphere{ glm::vec3(0.f,-101.5f,0.f), 100.f, 1 });
+
+		_Scene.Materials.push_back(Material{glm::vec4(1.f,0.f,1.f,1.f), 1.f, 0.f});
+		_Scene.Materials.push_back(Material{glm::vec4(1.f), 0.f, 1.f});
 	};
 
 	virtual void OnUpdate(float ts) override
 	{
-		if(_RealTimeOrSnapshot == "Real Time")
+		if(_RealTime)
 		{
-			_Camera.OnUpdate(ts);
+			bool moved = _Camera.OnUpdate(ts);
+			if (moved) { _Renderer.ResetFrameIndex(); }
 		}
 	}
 
@@ -42,11 +46,15 @@ public:
 		if (ImGui::Button("Render")) 
 		{
 			Render();
-		};
-		if (ImGui::Button(_RealTimeOrSnapshot.c_str()))
+		}; 
+
+		ImGui::Checkbox("Accumulate", &_Renderer.GetSettings().Accumulate);
+		ImGui::Checkbox("Real Time", &_RealTime);
+
+		if (ImGui::Button("Reset"))
 		{
-			_RealTimeOrSnapshot = (_RealTimeOrSnapshot == "Real Time") ? "Snapshot" : "Real Time";
-		}
+			_Renderer.ResetFrameIndex();
+		};
 		ImGui::End(); 
 		
 		ImGui::Begin("Scene");
@@ -57,13 +65,32 @@ public:
 			Sphere& sphere = _Scene.Spheres.at(i);
 			std::string name = "Sphere " + std::to_string(i + 1) + ":";
 			ImGui::Text(name.c_str());
-			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
-			ImGui::ColorEdit4("Albedo", glm::value_ptr(sphere.Albedo), 0.1f);
-			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
+			bool s1 = ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
+			bool s2 = ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
+			bool s3 = ImGui::DragInt("Material Index", &sphere.MaterialIndex, 1.f, 0.f,(int)_Scene.Materials.size() - 1);
+
+			if (s1 || s2 || s3) { _Renderer.ResetFrameIndex(); }
 
 			ImGui::Separator();
 			ImGui::PopID();
 		}
+		for (size_t i = 0; i < _Scene.Materials.size(); i++)
+		{
+			ImGui::PushID(i);
+
+			Material& mat = _Scene.Materials.at(i);
+			std::string name = "Material " + std::to_string(i + 1) + ":";
+			ImGui::Text(name.c_str());
+			bool s1 = ImGui::ColorEdit4("Albedo", glm::value_ptr(mat.Albedo), 0.1f);
+			bool s2 = ImGui::DragFloat("Roughness", &mat.Roughness, 0.01f, 0.f, 1.f);
+			bool s3 = ImGui::DragFloat("Mettalic", &mat.Metallic, 0.01f, 0.f, 1.f);
+
+			if (s1 || s2 || s3) { _Renderer.ResetFrameIndex(); }
+
+			ImGui::Separator();
+			ImGui::PopID();
+		}
+
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f,0.f));
@@ -79,7 +106,7 @@ public:
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-		if(_RealTimeOrSnapshot == "Real Time")
+		if(_RealTime)
 		{
 			Render();
 		}
