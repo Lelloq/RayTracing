@@ -3,6 +3,7 @@
 #include <iostream>
 #include <numeric>
 #include <execution>
+#include <future>
 
 namespace Utils
 {
