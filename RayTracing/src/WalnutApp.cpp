@@ -17,7 +17,7 @@ private:
 	Scene _Scene;
 	uint32_t _ViewportWidth = 0, _ViewportHeight = 0;
 
-	bool _RealTime = false;
+	bool _KeepRendering = false;
 
 	float _LastRenderTime = 0.f;
 public:
@@ -32,7 +32,7 @@ public:
 
 	virtual void OnUpdate(float ts) override
 	{
-		if(_RealTime)
+		if(_KeepRendering)
 		{
 			bool moved = _Camera.OnUpdate(ts);
 			if (moved) { _Renderer.ResetFrameIndex(); }
@@ -49,7 +49,7 @@ public:
 		}; 
 
 		ImGui::Checkbox("Accumulate", &_Renderer.GetSettings().Accumulate);
-		ImGui::Checkbox("Real Time", &_RealTime);
+		ImGui::Checkbox("Keep Rendering", &_KeepRendering);
 
 		if (ImGui::Button("Reset"))
 		{
@@ -106,7 +106,7 @@ public:
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-		if(_RealTime)
+		if(_KeepRendering)
 		{
 			Render();
 		}

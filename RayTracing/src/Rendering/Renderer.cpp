@@ -1,6 +1,8 @@
 #include "Rendering/Renderer.h"
 #include "Walnut/Random.h"
 #include <iostream>
+#include <numeric>
+#include <execution>
 
 namespace Utils
 {
@@ -21,13 +23,30 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 	_ActiveScene = &scene;
 	_ActiveCamera = &camera;
 
-	//Clear the accumlation buffer and fill it with 0s for
 	if(_FrameIndex == 1)
 	{
 		memset(_AccumulatedData, 0, (size_t)(_FinalImage->GetWidth() * _FinalImage->GetHeight() * sizeof(glm::vec4)));
 	}
 
-	//Every pixel going left to right, up to down
+#define MT 1
+#if MT
+	std::for_each(std::execution::par, _ImageVerticalIter.begin(), _ImageVerticalIter.end(), 
+		[this](uint32_t y) 
+		{
+			std::for_each(std::execution::par ,_ImageHorizontalIter.begin(), _ImageHorizontalIter.end(),
+			[this, y](uint32_t x)
+				{
+					glm::vec4 col = PerPixel(x, y);
+					_AccumulatedData[x + y * _FinalImage->GetWidth()] += col;
+
+					glm::vec4 accumlatedColour = _AccumulatedData[x + y * _FinalImage->GetWidth()];
+					accumlatedColour /= (float)_FrameIndex;//Avaraging out so there isn't unexpected bright colours
+
+					accumlatedColour = glm::clamp(accumlatedColour, glm::vec4(0.f), glm::vec4(1.f));
+					_ImageData[x + y * _FinalImage->GetWidth()] = Utils::ConvertToRGBA(accumlatedColour);
+				});
+		});
+#else
 	for (uint32_t y = 0; y < _FinalImage->GetHeight(); y++)
 	{
 		for (uint32_t x = 0; x < _FinalImage->GetWidth(); x++)
@@ -42,6 +61,7 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 			_ImageData[x + y * _FinalImage->GetWidth()] = Utils::ConvertToRGBA(accumlatedColour);
 		}
 	}
+#endif
 	_FinalImage->SetData(_ImageData);
 
 	if(_Settings.Accumulate)
@@ -186,4 +206,10 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
 	
 	delete[] _AccumulatedData;
 	_AccumulatedData = new glm::vec4[width * height];
+
+	_ImageHorizontalIter.resize(width);
+	_ImageVerticalIter.resize(height);
+
+	std::iota(_ImageHorizontalIter.begin(), _ImageHorizontalIter.end(), 0);
+	std::iota(_ImageVerticalIter.begin(), _ImageVerticalIter.end(), 0);
 }

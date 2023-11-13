@@ -25,6 +25,8 @@ private:
 	const Scene* _ActiveScene = nullptr;
 	const Camera* _ActiveCamera = nullptr;
 
+	std::vector<uint32_t> _ImageHorizontalIter, _ImageVerticalIter;
+
 	struct HitPayload
 	{
 		float HitDistance;
