@@ -13,6 +13,8 @@ public:
 	struct Settings
 	{
 		bool Accumulate = true;
+		int Bounces = 5;
+		glm::vec3 SkyColour{ .6f, .7f, .7f };
 	};
 private:
 	std::shared_ptr<Walnut::Image> _FinalImage;

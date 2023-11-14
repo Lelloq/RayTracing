@@ -9,7 +9,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-class ExampleLayer : public Walnut::Layer
+class RayTraceLayer : public Walnut::Layer
 {
 private:
 	Renderer _Renderer;
@@ -21,13 +21,15 @@ private:
 
 	float _LastRenderTime = 0.f;
 public:
-	ExampleLayer() : _Camera(45.f, 0.1f, 100.f) 
+	RayTraceLayer() : _Camera(45.f, 0.1f, 100.f) 
 	{
 		_Scene.Spheres.push_back(Sphere{ glm::vec3(0.0f,0.0f,0.f), 1.0f, 0 });
 		_Scene.Spheres.push_back(Sphere{ glm::vec3(0.f,-101.5f,0.f), 100.f, 1 });
+		_Scene.Spheres.push_back(Sphere{ glm::vec3(1.5f, 0.0f,1.f), .5f, 2 });
 
-		_Scene.Materials.push_back(Material{glm::vec4(1.f,0.f,1.f,1.f), 1.f, 0.f});
-		_Scene.Materials.push_back(Material{glm::vec4(1.f), 0.f, 1.f});
+		_Scene.Materials.push_back(Material{glm::vec3(1.f,0.f,1.f), 1.f, 0.f});
+		_Scene.Materials.push_back(Material{glm::vec3(1.f), 0.f, 1.f});
+		_Scene.Materials.push_back(Material{ glm::vec4(1.f,0.f,0.f,1.f), 1.f, 0.f, glm::vec3(1.f,0.f,0.f), 1.0f});
 	};
 
 	virtual void OnUpdate(float ts) override
@@ -50,6 +52,8 @@ public:
 
 		ImGui::Checkbox("Accumulate", &_Renderer.GetSettings().Accumulate);
 		ImGui::Checkbox("Keep Rendering", &_KeepRendering);
+		ImGui::DragInt("Bounces", &_Renderer.GetSettings().Bounces, 1.f, 0, 10);
+		ImGui::ColorEdit3("Sky Colour", glm::value_ptr(_Renderer.GetSettings().SkyColour));
 
 		if (ImGui::Button("Reset"))
 		{
@@ -74,6 +78,9 @@ public:
 			ImGui::Separator();
 			ImGui::PopID();
 		}
+		ImGui::End();
+
+		ImGui::Begin("Materials");
 		for (size_t i = 0; i < _Scene.Materials.size(); i++)
 		{
 			ImGui::PushID(i);
@@ -81,16 +88,17 @@ public:
 			Material& mat = _Scene.Materials.at(i);
 			std::string name = "Material " + std::to_string(i + 1) + ":";
 			ImGui::Text(name.c_str());
-			bool s1 = ImGui::ColorEdit4("Albedo", glm::value_ptr(mat.Albedo), 0.1f);
+			bool s1 = ImGui::ColorEdit3("Albedo", glm::value_ptr(mat.Albedo), 0.1f);
 			bool s2 = ImGui::DragFloat("Roughness", &mat.Roughness, 0.01f, 0.f, 1.f);
-			bool s3 = ImGui::DragFloat("Mettalic", &mat.Metallic, 0.01f, 0.f, 1.f);
+			bool s3 = ImGui::DragFloat("Metallic", &mat.Metallic, 0.01f, 0.f, 1.f);
+			bool s4 = ImGui::ColorEdit3("Emissive Colour", glm::value_ptr(mat.EmissionColour));
+			bool s5 = ImGui::DragFloat("Emission Power", &mat.EmissionPower, 0.01f, 0.f, std::numeric_limits<float>().max());
 
-			if (s1 || s2 || s3) { _Renderer.ResetFrameIndex(); }
+			if (s1 || s2 || s3 || s4 || s5) { _Renderer.ResetFrameIndex(); }
 
 			ImGui::Separator();
 			ImGui::PopID();
 		}
-
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f,0.f));
@@ -130,7 +138,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Name = "Ray Tracing";
 
 	Walnut::Application* app = new Walnut::Application(spec);
-	app->PushLayer<ExampleLayer>();
+	app->PushLayer<RayTraceLayer>();
 	app->SetMenubarCallback([app]()
 	{
 		if (ImGui::BeginMenu("File"))
