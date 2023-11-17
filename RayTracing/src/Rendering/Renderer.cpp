@@ -117,8 +117,8 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 			break;
 		}
 
-		const Sphere& sphere = _ActiveScene->Spheres.at(payload.ObjectIndex);
-		const Material& material = _ActiveScene->Materials.at(sphere.MaterialIndex);
+		const Sphere& shape = _ActiveScene->Spheres.at(payload.ObjectIndex);
+		const Material& material = _ActiveScene->Materials.at(shape.MaterialIndex);
 
 		contribution *= material.Albedo;
 		light += material.GetEmission();
@@ -141,32 +141,26 @@ Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
 	//a = ray origin
 	//b = ray direction
 	//r = radius
-	//t = hit distance
+	//t = Hit distance
 
 	int closestSphere = -1;
 	float hitDist = std::numeric_limits<float>().max();
 
-	for(uint32_t i = 0; i < _ActiveScene->Spheres.size(); i++)
+	for(uint32_t i = 0; i < _ActiveScene->Shapes.size(); i++)
 	{
-		const Sphere& sphere = _ActiveScene->Spheres[i];
-		glm::vec3 origin = ray.Origin - sphere.Position;
+		const Shape* sphere = _ActiveScene->Shapes.at(i);
+		float hitResult = sphere->Hit(ray);
 
-		float a = glm::dot(ray.Direction, ray.Direction);
-		float b = 2.f * glm::dot(origin, ray.Direction);
-		float c = glm::dot(origin, origin) - sphere.Radius * sphere.Radius;
-
-		float discriminant = b * b - 4.f * a * c;
-		if (discriminant < 0.f)
+		if (hitResult < 0.f)
 		{
 			continue;
 		}
 
 		//(-b +- sqrt(disc)) / 2a
 		//float t0 = (-b + glm::sqrt(discriminant)) / (2.f * a);
-		float closestT = (-b - glm::sqrt(discriminant)) / (2.f * a);
-		if(closestT > 0.f && closestT < hitDist)
+		if(hitResult > 0.f && hitResult < hitDist)
 		{
-			hitDist = closestT;
+			hitDist = hitResult;
 			closestSphere = i;
 		}
 	}
@@ -185,14 +179,14 @@ Renderer::HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, int
 	payload.HitDistance = hitDistance;
 	payload.ObjectIndex = objectIndex;
 
-	const Sphere& closestSphere = _ActiveScene->Spheres.at(objectIndex);
+	const Shape* closestSphere = _ActiveScene->Shapes.at(objectIndex);
 
-	glm::vec3 origin = ray.Origin - closestSphere.Position;
-	//The coordinate in which the ray hit the sphere
+	glm::vec3 origin = ray.Origin - closestSphere->GetPosition();
+	//The coordinate in which the ray Hit the sphere
 	payload.WorldPosition = origin + ray.Direction * hitDistance;
 	payload.WorldNormal = glm::normalize(payload.WorldPosition);
 
-	payload.WorldPosition += closestSphere.Position;
+	payload.WorldPosition += closestSphere->GetPosition();
 
 	return payload;
 }

@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "Ray.h"
 #include "Scene.h"
+#include "Shape.h"
 
 class Renderer
 {
@@ -44,10 +45,10 @@ private:
 	//Firing a ray on and seeing if it hits an object
 	HitPayload TraceRay(const Ray& ray);
 
-	//The closest hit object returns the data of where it has been hit and its normal
+	//The closest Hit object returns the data of where it has been Hit and its normal
 	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex);
 
-	//Returns a payload of -1 indicating the ray did not hit anything
+	//Returns a payload of -1 indicating the ray did not Hit anything
 	HitPayload Miss(const Ray& ray);
 public:
 	Renderer() = default;

@@ -30,6 +30,8 @@ public:
 		_Scene.Materials.push_back(Material{glm::vec3(1.f,0.f,1.f), 1.f, 0.f});
 		_Scene.Materials.push_back(Material{glm::vec3(1.f), 0.f, 1.f});
 		_Scene.Materials.push_back(Material{ glm::vec4(1.f,0.f,0.f,1.f), 1.f, 0.f, glm::vec3(1.f,0.f,0.f), 1.0f});
+
+		Shape::AddShapes<Sphere>(_Scene.Shapes, _Scene.Spheres);
 	};
 
 	virtual void OnUpdate(float ts) override
@@ -62,7 +64,7 @@ public:
 		ImGui::End(); 
 		
 		ImGui::Begin("Scene");
-		for(size_t i = 0; i < _Scene.Spheres.size(); i++)
+		for (size_t i = 0; i < _Scene.Spheres.size(); i++)
 		{
 			ImGui::PushID(i);
 
@@ -71,7 +73,7 @@ public:
 			ImGui::Text(name.c_str());
 			bool s1 = ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
 			bool s2 = ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-			bool s3 = ImGui::DragInt("Material Index", &sphere.MaterialIndex, 1.f, 0.f,(int)_Scene.Materials.size() - 1);
+			bool s3 = ImGui::DragInt("Material Index", &sphere.MaterialIndex, 1.f, 0.f, (int)_Scene.Materials.size() - 1);
 
 			if (s1 || s2 || s3) { _Renderer.ResetFrameIndex(); }
 

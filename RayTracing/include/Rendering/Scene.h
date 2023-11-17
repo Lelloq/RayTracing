@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <glm/glm.hpp>
+#include "Shape.h"
 
 struct Material
 {
@@ -13,16 +14,9 @@ struct Material
 	inline glm::vec3 GetEmission() const { return EmissionColour * EmissionPower; }
 };
 
-struct Sphere
-{
-	glm::vec3 Position{0.f};
-	float Radius = 0.5;
-
-	int MaterialIndex;
-};
-
 struct Scene
 {
+	std::vector<Shape*> Shapes;//For hitting only
 	std::vector<Sphere> Spheres;
 	std::vector<Material> Materials;
 };
