@@ -9,6 +9,8 @@ project "RayTracing"
    {
 		"src/**.cpp",
 		"include/**.h",
+		"tests/**.h",
+		"tests/**.cpp",
    }
 
    includedirs
@@ -21,7 +23,8 @@ project "RayTracing"
 
       "%{IncludeDir.VulkanSDK}",
 	  
-	  "include/"
+	  "include/",
+	  "tests/",
    }
 
    links
