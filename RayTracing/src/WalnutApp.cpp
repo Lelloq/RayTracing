@@ -1,11 +1,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "RayTraceLayer.h"
+#include "Tests.h"
 
 #define TESTING 0
-
-#if TESTING
-#include "Tests.h"
-#endif
 
 #if !TESTING
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
