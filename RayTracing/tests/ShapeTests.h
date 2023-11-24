@@ -10,6 +10,7 @@ struct TestShape : public Shape
 
 	TestShape(glm::vec3 pos, float radius, int mat) : Position(pos), Radius(radius), MaterialIndex(mat) {}
 	glm::vec3 GetPosition() const override { return Position; };
+	int GetMaterialIndex() const override { return MaterialIndex; }
 
 	float Hit(const Ray& ray) const override
 	{
