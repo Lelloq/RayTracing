@@ -1,5 +1,5 @@
 #pragma once
-#include "Rendering/Shape.h"
+#include "Shapes/Shape.h"
 
 struct TestShape : public Shape
 {

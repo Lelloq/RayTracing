@@ -6,7 +6,7 @@
 #include "Camera.h"
 #include "Ray.h"
 #include "Scene.h"
-#include "Shape.h"
+#include "Shapes/Shape.h"
 
 class Renderer
 {

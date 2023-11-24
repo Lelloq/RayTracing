@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <glm/glm.hpp>
-#include "Shape.h"
+#include "Shapes/Shapes.h"
 
 struct Material
 {
@@ -18,5 +18,6 @@ struct Scene
 {
 	std::vector<Shape*> Shapes;//For hitting only
 	std::vector<Sphere> Spheres;
+	std::vector<Box> Boxes;
 	std::vector<Material> Materials;
 };

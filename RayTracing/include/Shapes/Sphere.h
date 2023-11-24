@@ -1,26 +1,5 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include "Ray.h"
-
-class Shape
-{
-public:
-	virtual float Hit(const Ray& ray) const = 0;
-	virtual glm::vec3 GetPosition() const = 0;
-	virtual int GetMaterialIndex() const = 0;
-	virtual void CalculateNormals(HitPayload& payload, const Ray& ray) = 0;
-
-	template<typename T>
-	static void AddShapes(std::vector<Shape*>& shapeContainer, std::vector<T>& shapes)
-	{
-		for (Shape& s : shapes)
-		{
-			shapeContainer.push_back(&s);
-		}
-	}
-};
+#include "Shape.h"
 
 struct Sphere : public Shape
 {
@@ -60,7 +39,7 @@ struct Sphere : public Shape
 	void CalculateNormals(HitPayload& payload, const Ray& ray) override
 	{
 		glm::vec3 origin = ray.Origin - Position;
-		//The coordinate in which the ray Hit the sphere
+
 		payload.WorldPosition = origin + ray.Direction * payload.HitDistance;
 		payload.WorldNormal = glm::normalize(payload.WorldPosition);
 

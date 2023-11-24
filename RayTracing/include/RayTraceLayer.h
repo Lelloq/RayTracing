@@ -24,15 +24,18 @@ private:
 public:
 	RayTraceLayer() : _Camera(45.f, 0.1f, 100.f)
 	{
-		_Scene.Spheres.push_back(Sphere{ glm::vec3(0.0f,0.0f,0.f), 1.0f, 0 });
+		_Scene.Spheres.push_back(Sphere{ glm::vec3(0.0f,2.0f,0.f), 1.0f, 0 });
 		_Scene.Spheres.push_back(Sphere{ glm::vec3(0.f,-101.5f,0.f), 100.f, 1 });
 		_Scene.Spheres.push_back(Sphere{ glm::vec3(1.5f, 0.0f,1.f), .5f, 2 });
+
+		_Scene.Boxes.push_back(Box{ glm::vec3(1.0f, 0.f, 5.f), glm::vec3(.5f,0.5f,0.5f), 0 });
 
 		_Scene.Materials.push_back(Material{ glm::vec3(1.f,0.f,1.f), 1.f, 0.f });
 		_Scene.Materials.push_back(Material{ glm::vec3(1.f), 0.f, 1.f });
 		_Scene.Materials.push_back(Material{ glm::vec4(1.f,0.f,0.f,1.f), 1.f, 0.f, glm::vec3(1.f,0.f,0.f), 1.0f });
 
 		Shape::AddShapes(_Scene.Shapes, _Scene.Spheres);
+		Shape::AddShapes(_Scene.Shapes, _Scene.Boxes);
 	};
 
 	virtual void OnUpdate(float ts) override
