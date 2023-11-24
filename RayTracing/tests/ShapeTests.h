@@ -15,6 +15,8 @@ struct TestShape : public Shape
 	{
 		return 1.f;
 	};
+
+	void CalculateNormals(HitPayload& payload, const Ray& ray) override {};
 };
 
 struct TestScene

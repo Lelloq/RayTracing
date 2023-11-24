@@ -7,8 +7,10 @@
 class Shape
 {
 public:
-	virtual float Hit(const Ray& ray) const { return 0; };
-	virtual glm::vec3 GetPosition() const { return glm::vec3(0.f); };
+	virtual float Hit(const Ray& ray) const = 0;
+	virtual glm::vec3 GetPosition() const = 0;
+	virtual int GetMaterialIndex() const = 0;
+	virtual void CalculateNormals(HitPayload& payload, const Ray& ray) = 0;
 
 	template<typename T>
 	static void AddShapes(std::vector<Shape*>& shapeContainer, std::vector<T>& shapes)
@@ -22,13 +24,17 @@ public:
 
 struct Sphere : public Shape
 {
+	//It's a struct since I can edit the values directly through ImGui or by other means
 	glm::vec3 Position{ 0.f };
 	float Radius = 0.5;
 
 	int MaterialIndex;
 
 	Sphere(glm::vec3 pos, float radius, int mat) : Position(pos), Radius(radius), MaterialIndex(mat) {}
+
+	//These are only implemented so that the base class can retrieve those values
 	glm::vec3 GetPosition() const override { return Position; };
+	int GetMaterialIndex() const override { return MaterialIndex; }
 
 	float Hit(const Ray& ray) const override
 	{
@@ -49,5 +55,15 @@ struct Sphere : public Shape
 		float closestT = (-b - glm::sqrt(discriminant)) / (2.f * a);
 
 		return closestT;
+	}
+
+	void CalculateNormals(HitPayload& payload, const Ray& ray) override
+	{
+		glm::vec3 origin = ray.Origin - Position;
+		//The coordinate in which the ray Hit the sphere
+		payload.WorldPosition = origin + ray.Direction * payload.HitDistance;
+		payload.WorldNormal = glm::normalize(payload.WorldPosition);
+
+		payload.WorldPosition += Position;
 	}
 };

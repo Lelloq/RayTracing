@@ -30,15 +30,6 @@ private:
 
 	std::vector<uint32_t> _ImageHorizontalIter, _ImageVerticalIter;
 
-	struct HitPayload
-	{
-		float HitDistance;
-		glm::vec3 WorldNormal;
-		glm::vec3 WorldPosition;
-
-		int ObjectIndex;
-	};
-
 	//This is where the light bounce calculations are done and the colour of the pixel is determined
 	glm::vec4 PerPixel(uint32_t x, uint32_t y);
 

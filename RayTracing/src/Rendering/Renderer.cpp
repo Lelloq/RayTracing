@@ -110,15 +110,16 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 	{
 		seed += i;
 
-		Renderer::HitPayload payload = TraceRay(ray);
+		HitPayload payload = TraceRay(ray);
 		if (payload.HitDistance < 0)
 		{
 			light += _Settings.SkyColour * contribution;
 			break;
 		}
 
-		const Sphere& shape = _ActiveScene->Spheres.at(payload.ObjectIndex);
-		const Material& material = _ActiveScene->Materials.at(shape.MaterialIndex);
+		//Change this so it can render other primitives
+		const Shape* shape = _ActiveScene->Shapes.at(payload.ObjectIndex);
+		const Material& material = _ActiveScene->Materials.at(shape->GetMaterialIndex());
 
 		contribution *= material.Albedo;
 		light += material.GetEmission();
@@ -130,7 +131,7 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 	return glm::vec4(light, 1.0f);
 }
 
-Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
+HitPayload Renderer::TraceRay(const Ray& ray)
 {
 	float aspectRatio = (float)_FinalImage->GetWidth() / (float)_FinalImage->GetHeight();
 
@@ -143,7 +144,7 @@ Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
 	//r = radius
 	//t = Hit distance
 
-	int closestSphere = -1;
+	int closestShape = -1;
 	float hitDist = std::numeric_limits<float>().max();
 
 	for(uint32_t i = 0; i < _ActiveScene->Shapes.size(); i++)
@@ -161,40 +162,36 @@ Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
 		if(hitResult > 0.f && hitResult < hitDist)
 		{
 			hitDist = hitResult;
-			closestSphere = i;
+			closestShape = i;
 		}
 	}
 
-	if(closestSphere < 0)
+	if(closestShape < 0)
 	{
 		return Miss(ray);
 	}
 
-	return ClosestHit(ray, hitDist, closestSphere);
+	return ClosestHit(ray, hitDist, closestShape);
 }
 
-Renderer::HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)
+HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)
 {
-	Renderer::HitPayload payload;
+	HitPayload payload;
 	payload.HitDistance = hitDistance;
 	payload.ObjectIndex = objectIndex;
 
-	const Shape* closestSphere = _ActiveScene->Shapes.at(objectIndex);
+	Shape* closestShape = _ActiveScene->Shapes.at(objectIndex);
 
-	glm::vec3 origin = ray.Origin - closestSphere->GetPosition();
-	//The coordinate in which the ray Hit the sphere
-	payload.WorldPosition = origin + ray.Direction * hitDistance;
-	payload.WorldNormal = glm::normalize(payload.WorldPosition);
-
-	payload.WorldPosition += closestSphere->GetPosition();
+	//The coordinate in which the ray Hit the shape
+	closestShape->CalculateNormals(payload, ray);
 
 	return payload;
 }
 
 
-Renderer::HitPayload Renderer::Miss(const Ray& ray)
+HitPayload Renderer::Miss(const Ray& ray)
 {
-	Renderer::HitPayload payload;
+	HitPayload payload;
 	payload.HitDistance = -1.f;
 	return payload;
 }
