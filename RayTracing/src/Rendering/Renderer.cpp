@@ -121,6 +121,7 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 		const Shape* shape = _ActiveScene->Shapes.at(payload.ObjectIndex);
 		const Material& material = _ActiveScene->Materials.at(shape->GetMaterialIndex());
 
+		//Light calculations go here
 		contribution *= material.Albedo;
 		light += material.GetEmission();
 
@@ -135,22 +136,13 @@ HitPayload Renderer::TraceRay(const Ray& ray)
 {
 	float aspectRatio = (float)_FinalImage->GetWidth() / (float)_FinalImage->GetHeight();
 
-	//rayDirection = glm::normalize(rayDirection);
-
-	//Solving for t
-	//(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ay^2 + ax^2 - r^2) = 0
-	//a = ray origin
-	//b = ray direction
-	//r = radius
-	//t = Hit distance
-
 	int closestShape = -1;
 	float hitDist = std::numeric_limits<float>().max();
 
 	for(uint32_t i = 0; i < _ActiveScene->Shapes.size(); i++)
 	{
-		const Shape* sphere = _ActiveScene->Shapes.at(i);
-		float hitResult = sphere->Hit(ray);
+		const Shape* shape = _ActiveScene->Shapes.at(i);
+		float hitResult = shape->Hit(ray);
 
 		if (hitResult < 0.f)
 		{

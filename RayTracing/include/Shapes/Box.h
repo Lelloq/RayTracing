@@ -16,8 +16,10 @@ struct Box : public Shape
 public:
 	float Hit(const Ray& ray) const override
 	{
+		glm::vec3 origin = ray.Origin - Position;
+
 		glm::vec3 m = 1.0f / ray.Direction;
-		glm::vec3 n = m * ray.Origin;
+		glm::vec3 n = m * origin;
 		glm::vec3 k = glm::abs(m) * BoxSize;
 		glm::vec3 t1 = -n - k;
 		glm::vec3 t2 = -n + k;
@@ -31,8 +33,10 @@ public:
 	
 	void CalculateNormals(HitPayload& payload, const Ray& ray)
 	{
+		glm::vec3 origin = ray.Origin - Position;
+
 		glm::vec3 m = 1.0f / ray.Direction;
-		glm::vec3 n = m * ray.Origin;
+		glm::vec3 n = m * origin;
 		glm::vec3 k = glm::abs(m) * BoxSize;
 		glm::vec3 t1 = -n - k;
 
