@@ -28,7 +28,7 @@ public:
 		float tF = glm::min(glm::min(t2.x, t2.y), t2.z);
 		if (tN > tF || tF < 0.0f) return -1;
 
-		return tF;
+		return tN;
 	}
 	
 	void CalculateNormals(HitPayload& payload, const Ray& ray) const override
