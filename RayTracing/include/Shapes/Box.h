@@ -31,8 +31,10 @@ public:
 		return tF;
 	}
 	
-	void CalculateNormals(HitPayload& payload, const Ray& ray)
+	void CalculateNormals(HitPayload& payload, const Ray& ray) const override
 	{
+		/*Turns out it was better to recalculate rather than to cache the tN from the hit since removing const in the
+		hit function made it 20ms slower after having to remove the const in TraceRay function in the render*/
 		glm::vec3 origin = ray.Origin - Position;
 
 		glm::vec3 m = 1.0f / ray.Direction;

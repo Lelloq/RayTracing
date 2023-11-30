@@ -172,7 +172,7 @@ HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, int objectInd
 	payload.HitDistance = hitDistance;
 	payload.ObjectIndex = objectIndex;
 
-	Shape* closestShape = _ActiveScene->Shapes.at(objectIndex);
+	const Shape* closestShape = _ActiveScene->Shapes.at(objectIndex);
 
 	//The coordinate in which the ray Hit the shape
 	closestShape->CalculateNormals(payload, ray);

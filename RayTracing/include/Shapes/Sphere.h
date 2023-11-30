@@ -36,7 +36,7 @@ struct Sphere : public Shape
 		return closestT;
 	}
 
-	void CalculateNormals(HitPayload& payload, const Ray& ray) override
+	void CalculateNormals(HitPayload& payload, const Ray& ray) const override
 	{
 		glm::vec3 origin = ray.Origin - Position;
 

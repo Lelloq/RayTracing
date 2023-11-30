@@ -69,9 +69,11 @@ public:
 		ImGui::End();
 
 		ImGui::Begin("Scene");
+		uint32_t id = 0;
 		for (size_t i = 0; i < _Scene.Spheres.size(); i++)
 		{
-			ImGui::PushID(i);
+			ImGui::PushID(id);
+			id++;
 
 			Sphere& sphere = _Scene.Spheres.at(i);
 			std::string name = "Sphere " + std::to_string(i + 1) + ":";
@@ -79,6 +81,24 @@ public:
 			bool s1 = ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
 			bool s2 = ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
 			bool s3 = ImGui::DragInt("Material Index", &sphere.MaterialIndex, 1.f, 0.f, (int)_Scene.Materials.size() - 1);
+
+			if (s1 || s2 || s3) { _Renderer.ResetFrameIndex(); }
+
+			ImGui::Separator();
+			ImGui::PopID();
+		}
+
+		for (size_t i = 0; i < _Scene.Boxes.size(); i++)
+		{
+			ImGui::PushID(id);
+			id++;
+
+			Box& box = _Scene.Boxes.at(i);
+			std::string name = "Box " + std::to_string(i + 1) + ":";
+			ImGui::Text(name.c_str());
+			bool s1 = ImGui::DragFloat3("Position", glm::value_ptr(box.Position), 0.1f);
+			bool s2 = ImGui::DragFloat3("Box Size", glm::value_ptr(box.BoxSize), 0.1f, 0.1f, std::numeric_limits<float>().max());
+			bool s3 = ImGui::DragInt("Material Index", &box.MaterialIndex, 1.f, 0.f, (int)_Scene.Materials.size() - 1);
 
 			if (s1 || s2 || s3) { _Renderer.ResetFrameIndex(); }
 
